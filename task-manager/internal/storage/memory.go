@@ -85,8 +85,6 @@ func(s *MemoryStorage) Update(id string, update *models.TaskUpdate) (*models.Tas
 		return nil, ErrTaskNotFound
 	}
 	
-	return task, nil
-
 	//uypdate the provided fields
 	if update.Title != nil {
 		task.Title = *update.Title
