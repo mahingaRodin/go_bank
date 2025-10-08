@@ -14,7 +14,7 @@ var (
 )
 
 
-type taskStorage interface {
+type TaskStorage interface {
 	Create(task *models.Task) error
 	GetByID(id string) (*models.Task, error)
 	GetAll() ([]*models.Task, error)
