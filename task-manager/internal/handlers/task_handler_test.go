@@ -3,13 +3,14 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/gin-gonic/gin"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"net/http"
 	"net/http/httptest"
 	"task-manager/internal/models"
-	"task-manager/internal/storage"
+
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	//"task-manager/internal/storage"
 	"testing"
 )
 
@@ -87,4 +88,41 @@ func performRequest(router http.Handler, method, path string, body interface{}) 
 
 func stringPtr(s string) *string {
 	return &s
+}
+
+// actual test functions
+func TestTaskHandler_CreateTask(t *testing.T) {
+	router := setupRouter()
+	handler, mockStorage := setupTestHandler()
+
+	router.POST("/tasks", handler.CreateTask)
+	t.Run("Success", func(t *testing.T) {
+		task := models.Task{
+			Title:       "Test Task",
+			Description: "Test Description",
+		}
+		mockStorage.On("Create", mock.AnythingOfType("*models.Task")).Return(nil)
+		w := performRequest(router, "POST", "/tasks", task)
+		assert.Equal(t, http.StatusCreated, w.Code)
+		mockStorage.AssertCalled(t, "Create", mock.AnythingOfType("*models.Task"))
+	})
+
+	t.Run("Invalid JSON", func(t *testing.T) {
+		w := performRequest(router, "POST", "/tasks", "invalid json")
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("Storage Error", func(t *testing.T) {
+		task := models.Task{
+			Title:       "Test Task",
+			Description: "Test Description",
+		}
+
+		mockStorage.On("Create", mock.AnythingOfType("*models.Task")).Return(assert.AnError)
+
+		w := performRequest(router, "POST", "/tasks", task)
+
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+	})
 }
