@@ -92,11 +92,11 @@ func stringPtr(s string) *string {
 
 // actual test functions
 func TestTaskHandler_CreateTask(t *testing.T) {
-	router := setupRouter()
-	handler, mockStorage := setupTestHandler()
-
-	router.POST("/tasks", handler.CreateTask)
 	t.Run("Success", func(t *testing.T) {
+		router := setupRouter()
+		handler, mockStorage := setupTestHandler()
+		router.POST("/tasks", handler.CreateTask)
+
 		task := models.Task{
 			Title:       "Test Task",
 			Description: "Test Description",
@@ -108,12 +108,19 @@ func TestTaskHandler_CreateTask(t *testing.T) {
 	})
 
 	t.Run("Invalid JSON", func(t *testing.T) {
-		w := performRequest(router, "POST", "/tasks", "invalid json")
+		router := setupRouter()
+		handler, _ := setupTestHandler()
+		router.POST("/tasks", handler.CreateTask)
 
+		w := performRequest(router, "POST", "/tasks", "invalid json")
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
 	t.Run("Storage Error", func(t *testing.T) {
+		router := setupRouter()
+		handler, mockStorage := setupTestHandler()
+		router.POST("/tasks", handler.CreateTask)
+
 		task := models.Task{
 			Title:       "Test Task",
 			Description: "Test Description",
@@ -124,5 +131,6 @@ func TestTaskHandler_CreateTask(t *testing.T) {
 		w := performRequest(router, "POST", "/tasks", task)
 
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		mockStorage.AssertExpectations(t)
 	})
 }
